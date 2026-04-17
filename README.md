@@ -53,10 +53,10 @@
 ## 📊 성능 최적화 결과 (Benchmark)
 Triton의 동적 배치(Dynamic Batching)와 ONNX 가변 길이(Dynamic Axes) 추론을 적용하여, 기존 로컬 환경 대비 서빙 지연 시간과 처리량을 대폭 개선했습니다. 클라이언트의 텍스트 길이에 맞춰 텐서 크기를 유동적으로 조절(`padding='longest'`)하여 낭비되는 연산을 제거했습니다.
 
-| 서빙 아키텍처 | 배치 설정 | 시퀀스 길이 처리 | Latency (ms/req) | Throughput (req/sec) |
+| 서빙 아키텍처 | 배치 설정 | 시퀀스 길이 처리 (Input Shape) | Latency (Avg) | Throughput (Max) |
 | :--- | :--- | :--- | :--- | :--- |
-| **Local PyTorch** | Batch=1 (Sequential) | 128 고정 (Max Padding) | ~ 45.2 ms | ~ 22 TPS |
-| **Triton Server** | **동적 배치 (Max=8)** | **입력 맞춤형 가변 길이** | **~ 12.5 ms** | **~ 145 TPS** |
+| **Local PyTorch** | Batch=1 (Sequential) | Fixed (128) | ~ 45.2 ms | ~ 22 TPS |
+| **Triton Server** | **Dynamic Batching (Max=8)** | **Dynamic Sequence (-1)** | **~ 12.5 ms** | **~ 145 TPS** |
 
 > **🔗 Engineering Deep Dive: 동적 패딩(Dynamic Padding) 및 시스템 동기화**
 > 
