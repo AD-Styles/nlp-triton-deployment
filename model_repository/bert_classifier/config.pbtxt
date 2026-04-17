@@ -1,0 +1,35 @@
+name: "bert_classifier"
+platform: "onnxruntime_onnx"
+max_batch_size: 8
+
+input [
+  {
+    name: "input_ids"
+    data_type: TYPE_INT32
+    dims: [ 128 ]
+  },
+  {
+    name: "attention_mask"
+    data_type: TYPE_INT32
+    dims: [ 128 ]
+  }
+]
+
+output [
+  {
+    name: "output"
+    data_type: TYPE_FP32
+    dims: [ 2 ]
+  }
+]
+
+instance_group [
+  {
+    count: 1
+    kind: KIND_GPU
+  }
+]
+
+dynamic_batching {
+  max_queue_delay_microseconds: 100
+}
