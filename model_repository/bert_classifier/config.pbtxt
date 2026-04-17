@@ -6,7 +6,7 @@ input [
   {
     name: "input_ids"
     data_type: TYPE_INT32
-    dims: [ -1 ]  # [일치 확인] README의 Dynamic Sequence 설정 적용
+    dims: [ -1 ]  # README의 Dynamic Sequence 설정 적용
   },
   {
     name: "attention_mask"
