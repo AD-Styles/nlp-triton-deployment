@@ -11,43 +11,56 @@ class TritonNLPClient:
     def __init__(self, url: str, model_name: str):
         self.url = url
         self.model_name = model_name
+        # BERT 토크나이저 로드 (학습 시 사용한 모델과 동일해야 함)
         self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
         
-        # [Fix 1] 서버 연결 실패 예외 처리
         try:
+            # HTTP 클라이언트 초기화
             self.client = httpclient.InferenceServerClient(url=self.url)
         except Exception as e:
             raise ConnectionError(f"Triton 서버({self.url}) 클라이언트 초기화 실패: {e}")
 
     def check_server_health(self) -> bool:
-        """Triton 서버 상태 검증"""
+        """서버 가동 상태 및 모델 로드 상태 확인"""
         try:
             if not self.client.is_server_ready():
-                print(f"🚨 Triton Server ({self.url}) is not ready.")
+                print(f"🚨 Triton Server ({self.url}) 가 아직 준비되지 않았습니다.")
                 return False
-            print(f"✅ Triton Server ({self.url}) is online and ready.")
+            
+            if not self.client.is_model_ready(self.model_name):
+                print(f"🚨 모델 '{self.model_name}'이 서버에 로드되지 않았습니다.")
+                return False
+                
+            print(f"✅ Triton Server 및 모델 '{self.model_name}' 준비 완료.")
             return True
         except InferenceServerException as e:
-            print(f"🚨 서버 상태 확인 중 오류 발생 (네트워크/서버 다운 확인 필요):\n{e}")
+            print(f"🚨 서버 상태 확인 중 오류 발생 (네트워크 연결 확인 필요):\n{e}")
             return False
 
     def preprocess(self, text: str):
-        """동적 길이(Dynamic Axes)를 활용한 최적화된 토큰화"""
-        # [Fix 3] max_length=128 하드코딩 제거, 입력된 문장 길이에 딱 맞게 패딩 (longest)
+        """
+        [최적화 핵심] Dynamic Sequence Length 대응 전처리
+        padding='longest'를 사용하여 입력 문장 길이에 딱 맞는 텐서 크기를 생성합니다.
+        """
         encoded = self.tokenizer.encode_plus(
             text,
             add_special_tokens=True,
-            padding='longest',  # 동적 시퀀스 길이 허용 (연산량 최소화)
+            padding='longest',     # 하드코딩된 128 대신 문장 길이에 맞춤
+            truncation=True,       # 혹시 모를 초장문은 잘라냄
             return_attention_mask=True
         )
+        
+        # Triton 입력을 위한 NumPy 배열 변환 (배치 차원 추가)
         input_ids = np.array([encoded['input_ids']], dtype=np.int32)
         attention_mask = np.array([encoded['attention_mask']], dtype=np.int32)
+        
         return input_ids, attention_mask
 
     def infer(self, text: str):
-        """추론 요청 및 Latency 측정"""
+        """Triton 서버에 추론 요청 및 Latency 측정"""
         input_ids, attention_mask = self.preprocess(text)
 
+        # 입력 텐서 구성
         inputs = [
             httpclient.InferInput("input_ids", input_ids.shape, "INT32"),
             httpclient.InferInput("attention_mask", attention_mask.shape, "INT32")
@@ -55,35 +68,49 @@ class TritonNLPClient:
         inputs[0].set_data_from_numpy(input_ids)
         inputs[1].set_data_from_numpy(attention_mask)
 
+        # 출력 텐서 지정 (L2 모델 결과인 2개 클래스)
         outputs = [httpclient.InferRequestedOutput("output")]
 
-        # [Fix 2] 추론 중 발생할 수 있는 에러 처리 및 속도 측정
         try:
             start_time = time.time()
+            # 서버로 추론 요청 전송
             response = self.client.infer(self.model_name, inputs, outputs=outputs)
             latency_ms = (time.time() - start_time) * 1000
             
+            # 결과 처리
             result_logits = response.as_numpy("output")
             prediction = np.argmax(result_logits, axis=1)[0]
+            
             return prediction, latency_ms
         except InferenceServerException as e:
-            print(f"🚨 추론 실패 (모델 이름 확인 또는 서버 로그 참조):\n{e}")
+            print(f"🚨 추론 과정에서 에러 발생:\n{e}")
             return None, None
 
 if __name__ == "__main__":
-    # [Fix 1] 하드코딩 제거 및 CLI 환경 지원
-    parser = argparse.ArgumentParser(description="Production NLP Triton Client")
-    parser.add_argument('--url', type=str, default='localhost:8000', help='Triton Server HTTP URL (ex: localhost:8000)')
-    parser.add_argument('--model', type=str, default='bert_classifier', help='Target model name in repository')
+    # 실행 시 인자를 통해 유연하게 설정 가능
+    parser = argparse.ArgumentParser(description="Production-Ready Triton NLP Client")
+    parser.add_argument('--url', type=str, default='localhost:8000', help='Triton Server URL')
+    parser.add_argument('--model', type=str, default='bert_classifier', help='Model Name')
     args = parser.parse_args()
 
+    # 클라이언트 객체 생성
     client = TritonNLPClient(url=args.url, model_name=args.model)
     
+    # 서버 헬스체크 후 추론 실행
     if client.check_server_health():
-        sample_text = "Deploying models with dynamic batching and variable sequence lengths is incredibly efficient!"
-        print(f"\n--- Triton Inference Request ---")
-        print(f"Input: {sample_text}")
+        test_sentences = [
+            "This model serving pipeline is extremely efficient!",
+            "I am very happy with the deployment results."
+        ]
         
-        result, latency = client.infer(sample_text)
-        if result is not None:
-            print(f"Predicted Class: {result} (Latency: {latency:.2f}ms)")
+        print(f"\n{'='*50}")
+        print(f"🚀 Triton Inference 파이프라인 가동 시작")
+        print(f"{'='*50}")
+
+        for text in test_sentences:
+            pred, lat = client.infer(text)
+            if pred is not None:
+                sentiment = "Positive" if pred == 1 else "Negative"
+                print(f"🔹 Input: {text}")
+                print(f"🔸 Result: {sentiment} (Latency: {lat:.2f}ms)")
+                print(f"{'-'*50}")
