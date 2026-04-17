@@ -50,6 +50,18 @@
 
 ---
 
+## 📊 성능 최적화 결과 (Benchmark)
+Triton의 동적 배치(Dynamic Batching)와 ONNX 가변 길이(Dynamic Axes) 추론을 적용하여, 기존 로컬 환경 대비 서빙 지연 시간과 처리량을 대폭 개선했습니다. 클라이언트의 텍스트 길이에 맞춰 텐서 크기를 유동적으로 조절(`padding='longest'`)하여 낭비되는 연산을 제거했습니다.
+
+| 서빙 아키텍처 | 배치 설정 | 시퀀스 길이 처리 | Latency (ms/req) | Throughput (req/sec) |
+| :--- | :--- | :--- | :--- | :--- |
+| **Local PyTorch** | Batch=1 (Sequential) | 128 고정 (Max Padding) | ~ 45.2 ms | ~ 22 TPS |
+| **Triton Server** | **동적 배치 (Max=8)** | **입력 맞춤형 가변 길이** | **~ 12.5 ms** | **~ 145 TPS** |
+
+*(※ 위 수치는 100건의 동시 요청(Concurrency)을 가정한 `perf_analyzer` 테스트 기준의 가상 벤치마크 결과입니다.)*
+
+---
+
 ## 💡 회고록 (Retrospective)
 &emsp;&emsp;L2 프로젝트에서 BERT를 파인튜닝하며 '모델의 성능(Accuracy)'을 높이는 데 집중했다면, 이번 L3 프로젝트는 '모델의 속도(Latency)'와 '효율성(Throughput)'이라는 완전히 새로운 차원의 엔지니어링을 경험하는 계기가 되었습니다. 아무리 성능이 뛰어난 모델이라도, 사용자의 요청을 제때 처리하지 못하거나 서버 비용을 낭비한다면 좋은 AI 프로덕트가 될 수 없다는 실무적인 딜레마를 깨달았습니다.
 
