@@ -6,12 +6,12 @@ input [
   {
     name: "input_ids"
     data_type: TYPE_INT32
-    dims: [ -1 ]  # [FIX] 고정된 128을 제거하고 가변(-1)으로 수정
+    dims: [ -1 ]  # [일치 확인] README의 Dynamic Sequence 설정 적용
   },
   {
     name: "attention_mask"
     data_type: TYPE_INT32
-    dims: [ -1 ]  # [FIX] 고정된 128을 제거하고 가변(-1)으로 수정
+    dims: [ -1 ]
   }
 ]
 
@@ -19,17 +19,8 @@ output [
   {
     name: "output"
     data_type: TYPE_FP32
-    dims: [ 2 ]  # 분류 클래스 수 (예: 긍정/부정 2개)
+    dims: [ 2 ]   # [일치 확인] 분류 클래스 수 동기화
   }
 ]
 
-instance_group [
-  {
-    count: 1
-    kind: KIND_GPU
-  }
-]
-
-dynamic_batching {
-  max_queue_delay_microseconds: 100
-}
+dynamic_batching { max_queue_delay_microseconds: 100 }
