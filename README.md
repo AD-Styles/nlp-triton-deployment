@@ -1,5 +1,5 @@
 # 🌐 Deploying BERT: From PyTorch to Triton Server
-### 실습으로 익히는 NVIDIA Triton Inference Server 기반 NLP 모델 서빙과 백엔드 추론 파이프라인 설계
+### NVIDIA Triton Inference Server 기반 NLP 모델 서빙과 백엔드 추론 파이프라인 설계
 
 ![Python](https://img.shields.io/badge/Python-3.x-3776AB?style=flat-square&logo=python&logoColor=white)
 ![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=flat-square&logo=pytorch&logoColor=white)
