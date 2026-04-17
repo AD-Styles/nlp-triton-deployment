@@ -6,12 +6,12 @@ input [
   {
     name: "input_ids"
     data_type: TYPE_INT32
-    dims: [ 128 ]
+    dims: [ -1 ]  # [FIX] 고정된 128을 제거하고 가변(-1)으로 수정
   },
   {
     name: "attention_mask"
     data_type: TYPE_INT32
-    dims: [ 128 ]
+    dims: [ -1 ]  # [FIX] 고정된 128을 제거하고 가변(-1)으로 수정
   }
 ]
 
@@ -19,7 +19,7 @@ output [
   {
     name: "output"
     data_type: TYPE_FP32
-    dims: [ 2 ]
+    dims: [ 2 ]  # 분류 클래스 수 (예: 긍정/부정 2개)
   }
 ]
 
