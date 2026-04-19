@@ -9,7 +9,7 @@
 ---
 
 ## 📌 프로젝트 개요 (Project Overview)
-본 프로젝트는 파인튜닝이 완료된 자연어 처리(NLP) 모델을 실제 프로덕션(Production) 환경에 배포하기 위한 파이프라인을 다뤘습니다. NVIDIA Triton Inference Server를 활용하여 딥러닝 모델의 서빙(Serving) 구조를 설계하고, 지연 시간(Latency) 최소화 및 처리량(Throughput) 극대화를 위한 실무적인 백엔드 엔지니어링 역량을 확보하는 데 중점을 두었습니다.
+본 프로젝트는 파인튜닝이 완료된 자연어 처리(NLP) 모델을 실제 프로덕션(Production) 환경에 배포하기 위한 파이프라인을 다뤘습니다. NVIDIA Triton Inference Server를 활용하여 딥러닝 모델의 서빙(Serving) 구조를 설계하고, 지연 시간(Latency) 최소화 및 처리량(Throughput) 극대화를 위한 실무적인 엔지니어링 역량을 확보하는 데 중점을 두었습니다.
 
 ---
 
