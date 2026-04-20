@@ -1,23 +1,29 @@
-# [수정] 파일명을 .gitignore로 저장하십시오.
+# === Python 관련 (가장 중요!) ===
+# 파이썬 실행 시 자동으로 생기는 임시 폴더들
+__pycache__/
+*.py[cod]
+*$py.class
 
-# Byte-compiled / optimized / DLL files 
-__pycache__/ 
-*.py[cod] 
+# === Jupyter Notebook 관련 ===
+# 노트북 자동 저장 시 생기는 백업 폴더 (깃허브에 올라가면 지저분함)
+.ipynb_checkpoints
 
-# OS files
+# === 라이브러리 및 환경 관련 ===
+# 내 컴퓨터에만 설치된 라이브러리 폴더 (requirements.txt가 있으니 올릴 필요 없음)
+venv/
+.venv/
+env/
+
+# === IDE (개발 도구) 관련 ===
+# VS Code나 PyCharm 설정 파일 (개인 설정이라 공유 안 함)
+.vscode/
+.idea/
+
+# === 운영체제 찌꺼기 ===
 .DS_Store
 Thumbs.db
 
-# [추가] 대용량 모델 파일 (GitHub 업로드 방지)
-*.onnx
-*.pt
-*.bin
-
-# 가상환경 [cite: 19]
-.venv/ [cite: 19]
-venv/ [cite: 19]
-env/ [cite: 19]
-
-# IDE 설정 [cite: 23]
-.vscode/ [cite: 23]
-.idea/ [cite: 21]
+# === 데이터 및 결과물 (용량이 크면 제외) ===
+# 혹시 테스트로 넣은 데이터들이 올라가는 걸 방지
+data/
+runs/
